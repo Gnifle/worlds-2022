@@ -8,12 +8,12 @@ var ƒ = d3.f
 function readFile(){
     d3.loadData('annotations.json', 'matches.tsv', function(err, res){
         d3.selectAll('.group-header').st({opacity: 1})
-    
+
         annotations = res[0]
         matches = res[1]
-    
+
         teams2wins = {}
-    
+
         matches.forEach(function(d, i){
             d.winner = +d.winner
             if( i < 24 || !staticPick){
@@ -24,9 +24,9 @@ function readFile(){
             d.allTeams = d.t1 + '-' + d.t2
             if (!teams2wins[d.t1]) teams2wins[d.t1] = 0
             if (!teams2wins[d.t2]) teams2wins[d.t2] = 0
-            if (d.date < "10-15") teams2wins[d.wName]++     //make sure to change key each year
+            if (d.date < "10-13") teams2wins[d.wName]++     //make sure to change key each year
         })
-    
+
         byGroup = d3.nestBy(matches, ƒ('group'))
         reDraw();
     })
@@ -62,8 +62,8 @@ function scoreMatches(matches){
     teams.forEach(function(d){ nameToTeam[d.name] = d })
     matches.forEach(addMatchWins)
 
-    teams.forEach(function(d){ 
-        d.wins = d.w 
+    teams.forEach(function(d){
+        d.wins = d.w
         d.w = 0
     })
 
@@ -86,7 +86,7 @@ function scoreMatches(matches){
 
 
     var advanceSlots = 2
-    
+
     d3.nestBy(teams, function(d){ return d.w + d.wins*10 })
         .sort(d3.descendingKey('key'))
         .forEach(function(d){
@@ -94,7 +94,7 @@ function scoreMatches(matches){
             d.forEach(function(d){ d.advance = 't'})
             if(advanceSlots == 2){
                 if(d.length == 2){ //check for tied first place
-                    against = matches.filter(match => {return match.allTeams == d[0].name + '-' + d[1].name 
+                    against = matches.filter(match => {return match.allTeams == d[0].name + '-' + d[1].name
                                                            || match.allTeams == d[1].name + '-' + d[0].name})
                     if(against[0].actualWinner == against[1].actualWinner){
                         d.forEach(function(d){ if (d.name == against[0].actualWinner) d.advance = 'u'})
@@ -108,7 +108,7 @@ function scoreMatches(matches){
         } else{
             d.forEach(function(d){ d.advance = 'f' })
             if(d.length == 2){ //check for tied last place
-                against = matches.filter(match => {return match.allTeams == d[0].name + '-' + d[1].name 
+                against = matches.filter(match => {return match.allTeams == d[0].name + '-' + d[1].name
                                                        || match.allTeams == d[1].name + '-' + d[0].name})
                 if(against[0].actualWinner == against[1].actualWinner){
                     d.forEach(function(d){ if (d.name != against[0].actualWinner) d.advance = 'e'})
@@ -129,19 +129,19 @@ function scoreMatches(matches){
 
 function drawGroup(gMatches){
     var sel = d3.select('#group-' + gMatches.key.toLowerCase()).html('')
-    
+
     var complete = gMatches.filter(d => d.complete)
     var incomplete = gMatches.filter(function(d){ return !d.complete })
     scenarios = d3.range(64).map(function(i){
         incomplete.forEach(function(d, j){
-        d.winner = (i >> j) % 2 ? 1 : 2 
+        d.winner = (i >> j) % 2 ? 1 : 2
         d.wName = d['t' + d.winner]
         })
 
         return {
         str: incomplete.map(ƒ('winner')).join(''),
-        teams: scoreMatches(gMatches), 
-        incomplete: JSON.parse(JSON.stringify(incomplete))}    
+        teams: scoreMatches(gMatches),
+        incomplete: JSON.parse(JSON.stringify(incomplete))}
     })
 
     var teams = d3.nestBy(gMatches, ƒ('t1')).map(function(d){
@@ -202,7 +202,7 @@ function drawResults(sel, scenarios, name, complete, incomplete){
     var pBeat = completeIn.filter(ƒ('currentWon'))
     var pLost = completeIn.filter(function(d){ return !d.currentWon })
 
-    var pStr = 'Lost to ' 
+    var pStr = 'Lost to '
     pStr += pLost.map(ƒ('otherTeam')).join(' and ')
 
     if (pBeat.length){
@@ -249,16 +249,16 @@ function drawResults(sel, scenarios, name, complete, incomplete){
         var s
         if (d.key == '111') s = 'Win Next Three'
         if (d.key == '000') s = 'Lose Next Three'
-        if (d.key == '001') s = against[2] 
-        if (d.key == '010') s = against[1] 
-        if (d.key == '100') s = against[0] 
-        if (d.key == '011') s = against[0] 
-        if (d.key == '101') s = against[1] 
-        if (d.key == '110') s = against[2] 
+        if (d.key == '001') s = against[2]
+        if (d.key == '010') s = against[1]
+        if (d.key == '100') s = against[0]
+        if (d.key == '011') s = against[0]
+        if (d.key == '101') s = against[1]
+        if (d.key == '110') s = against[2]
         return s
         })
         .at({textAnchor: 'middle', x: 10*3.5, y: -10})
-    
+
     recordSel.appendMany('circle.scenario', ƒ())
         .at({r: 5, fill: ƒ('team', color[colorChoice]), cx: function(d, i){return i*10} })
         .call(d3.attachTooltip)
@@ -283,13 +283,13 @@ function drawResults(sel, scenarios, name, complete, incomplete){
             return d.map(ƒ('name')).join(' and ') + {u:' first seed',t: ' advance', m: ' tie', f: (d.length > 1 ? ' are' : ' is') + ' eliminated', e:' last place'}[d.key]
             })
         })
-        
+
         .on('click', function(d){
             current = []
             blank = true
             d3.selectAll('.matches > .game').each(function(e, i){
                 if (e.group == d.incomplete[0].group){
-                    current.push(e.clicked) 
+                    current.push(e.clicked)
                     if (e.clicked != 0) blank = false
                 }
             })
@@ -320,11 +320,11 @@ function drawResults(sel, scenarios, name, complete, incomplete){
             d3.select(this)
                 .text('')                        //clear existing text
                 .tspans(d3.wordwrap(d.text, d.lw || 5)) //wrap after 20 char
-        })  
+        })
 
 }
 
-    
+
 color = [ function color(d){ return {u:'#4CAF50',t: '#4CAF50', m: '#FF9800', f: '#f73434', e: '#f73434'}[d.advance] },
           function color(d){ return {u:'#2c7bb6',t: '#2c7bb6', m: '#dfaf90', f: '#f73434', e: '#f73434'}[d.advance] },
            function color(d){ return {u:'#36e03d',t: '#4CAF50', m: '#FF9800', f: '#f73434', e: '#b80f02'}[d.advance] },
